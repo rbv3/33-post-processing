@@ -277,13 +277,60 @@ const displacementPass = new ShaderPass(DisplacementShader)
 displacementPass.material.uniforms.uTime.value = 0;
 displacementPass.material.uniforms.uSpeed.value = 1;
 displacementPass.material.uniforms.uAmplitude.value = 0.05;
-displacementPass.enabled = true;
+displacementPass.enabled = false;
 
 gui.add(displacementPass, 'enabled').name('Enable Displacement')
 const displacementFolder = gui.addFolder('Displacement properties')
 displacementFolder.close()
 displacementFolder.add(displacementPass.material.uniforms.uSpeed, 'value').min(0).max(3).step(0.01).name('speed')
 displacementFolder.add(displacementPass.material.uniforms.uAmplitude, 'value').min(0).max(0.3).step(0.001).name('amplitude')
+
+// Futuristic Displacement Pass
+const TextureDisplacementShader = {
+    uniforms : {
+        tDiffuse: { value: null }, // previous RenderTarget
+        uNormalMap: { value: null },
+    },
+    vertexShader: `
+        varying vec2 vUv;
+
+        void main() {            
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+            vUv = uv;
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform sampler2D uNormalMap;
+
+        varying vec2 vUv;
+
+        void main() {
+            vec3 normalColor = texture2D(uNormalMap, vUv).rgb * 2.0 - 1.0; // -1 to 1
+            vec2 newUv = vUv + normalColor.xy * 0.1;
+
+            vec4 color = texture2D(tDiffuse, newUv);
+
+            vec3 lightDirection = normalize(vec3(-1.0, 1.0, 0.0));
+            float lightness = clamp(
+                dot(normalColor, lightDirection),
+                0.0,
+                1.0
+            );
+
+            color.rgb += lightness * 1.0;
+
+            gl_FragColor = vec4(color);
+        }
+    `
+}
+const textureDisplacementShader = new ShaderPass(TextureDisplacementShader)
+textureDisplacementShader.material.uniforms.uNormalMap.value = textureLoader.load(
+    '/textures/interfaceNormalMap.png'
+)
+textureDisplacementShader.enabled = true;
+gui.add(textureDisplacementShader, 'enabled').name('Enable Texture Displacement')
 
 effectComposer.addPass(renderPass)
 effectComposer.addPass(dotScreenPass)
@@ -292,6 +339,7 @@ effectComposer.addPass(rgbShiftPass)
 effectComposer.addPass(unrealBloomPass)
 effectComposer.addPass(tintPass)
 effectComposer.addPass(displacementPass)
+effectComposer.addPass(textureDisplacementShader)
 effectComposer.addPass(gammaCorrectionShader) // should be the last traditional pass
 effectComposer.addPass(smaaPass) // all Anti-alias pass should be the last
 
