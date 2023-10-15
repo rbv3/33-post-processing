@@ -290,6 +290,8 @@ const TextureDisplacementShader = {
     uniforms : {
         tDiffuse: { value: null }, // previous RenderTarget
         uNormalMap: { value: null },
+        uLightDirection: { value: null },
+        uLightStrength: { value: null },
     },
     vertexShader: `
         varying vec2 vUv;
@@ -303,6 +305,8 @@ const TextureDisplacementShader = {
     fragmentShader: `
         uniform sampler2D tDiffuse;
         uniform sampler2D uNormalMap;
+        uniform vec3 uLightDirection;
+        uniform float uLightStrength;
 
         varying vec2 vUv;
 
@@ -312,14 +316,14 @@ const TextureDisplacementShader = {
 
             vec4 color = texture2D(tDiffuse, newUv);
 
-            vec3 lightDirection = normalize(vec3(-1.0, 1.0, 0.0));
+            vec3 lightDirection = normalize(uLightDirection);
             float lightness = clamp(
                 dot(normalColor, lightDirection),
                 0.0,
                 1.0
             );
 
-            color.rgb += lightness * 1.0;
+            color.rgb += lightness * uLightStrength;
 
             gl_FragColor = vec4(color);
         }
@@ -329,8 +333,17 @@ const textureDisplacementShader = new ShaderPass(TextureDisplacementShader)
 textureDisplacementShader.material.uniforms.uNormalMap.value = textureLoader.load(
     '/textures/interfaceNormalMap.png'
 )
+textureDisplacementShader.material.uniforms.uLightDirection.value = new THREE.Vector3(-1, 1, 0);
+textureDisplacementShader.material.uniforms.uLightStrength.value = 1;
 textureDisplacementShader.enabled = true;
+
 gui.add(textureDisplacementShader, 'enabled').name('Enable Texture Displacement')
+
+const textureDisplacementFolder = gui.addFolder('Texture Displacement properties')
+textureDisplacementFolder.close()
+textureDisplacementFolder.add(textureDisplacementShader.material.uniforms.uLightDirection.value, 'x').min(-1).max(1).step(0.1).name('light direction X')
+textureDisplacementFolder.add(textureDisplacementShader.material.uniforms.uLightDirection.value, 'y').min(-1).max(1).step(0.1).name('light direction Y')
+textureDisplacementFolder.add(textureDisplacementShader.material.uniforms.uLightStrength, 'value').min(0).max(4).step(0.01).name('light strength')
 
 effectComposer.addPass(renderPass)
 effectComposer.addPass(dotScreenPass)
