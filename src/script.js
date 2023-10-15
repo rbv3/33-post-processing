@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as dat from 'lil-gui'
 
@@ -12,7 +14,7 @@ const gui = new dat.GUI()
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
-// Scene
+// Scenea
 const scene = new THREE.Scene()
 
 /**
@@ -124,11 +126,21 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFShadowMap
-renderer.useLegacyLights = false
 renderer.toneMapping = THREE.ReinhardToneMapping
 renderer.toneMappingExposure = 1.5
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+/*
+    Post Processing
+*/
+const effectComposer = new EffectComposer(renderer)
+effectComposer.setPixelRatio(renderer.getPixelRatio())
+effectComposer.setSize(sizes.width, sizes.height)
+
+const renderPass = new RenderPass(scene, camera)
+
+effectComposer.addPass(renderPass)
 
 /**
  * Animate
@@ -143,7 +155,7 @@ const tick = () =>
     controls.update()
 
     // Render
-    renderer.render(scene, camera)
+    effectComposer.render()
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
