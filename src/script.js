@@ -226,7 +226,9 @@ const TintShader = {
     `
 }
 const tintPass = new ShaderPass(TintShader)
-tintPass.material.uniforms.uTint.value = new THREE.Vector3(0.2, 0.0, 0.0);
+tintPass.material.uniforms.uTint.value = new THREE.Vector3(0.1, 0.1, 0.0);
+tintPass.enabled = false;
+
 gui.add(tintPass, 'enabled').name('Enable Tint')
 const tintPassFolder = gui.addFolder('Tint properties')
 tintPassFolder.close()
