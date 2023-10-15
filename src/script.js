@@ -5,6 +5,7 @@ import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
 import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader'
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -108,6 +109,10 @@ window.addEventListener('resize', () =>
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+    // Update EffectComposer
+    effectComposer.setSize(sizes.width, sizes.height)
+    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
 /**
@@ -140,29 +145,46 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /*
     Post Processing
 */
-const effectComposer = new EffectComposer(renderer)
+// Render Target
+const renderTarget = new THREE.WebGLRenderTarget(
+    800,
+    600, 
+    {
+        samples: renderer.getPixelRatio() === 1 ? 2 : 0
+    }
+)
+// EffectComposer
+const effectComposer = new EffectComposer(renderer, renderTarget)
 effectComposer.setPixelRatio(renderer.getPixelRatio())
 effectComposer.setSize(sizes.width, sizes.height)
 
+// Passes
 const renderPass = new RenderPass(scene, camera)
 
 const dotScreenPass = new DotScreenPass()
 dotScreenPass.enabled = false
 
 const glitchPass = new GlitchPass()
-glitchPass.enabled = false
+glitchPass.enabled = true
 
 const rgbShiftPass = new ShaderPass(RGBShiftShader)
-rgbShiftPass.enabled = true
+rgbShiftPass.enabled = false
 
 const gammaCorrectionShader = new ShaderPass(GammaCorrectionShader)
 gammaCorrectionShader.enabled = true
+
+const smaaPass = new SMAAPass()
+smaaPass.enabled = false
+if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2) {
+    smaaPass.enabled = true
+}
 
 effectComposer.addPass(renderPass)
 effectComposer.addPass(dotScreenPass)
 effectComposer.addPass(glitchPass)
 effectComposer.addPass(rgbShiftPass)
-effectComposer.addPass(gammaCorrectionShader)
+effectComposer.addPass(gammaCorrectionShader) // should be the last traditional pass
+effectComposer.addPass(smaaPass) // all Anti-alias pass should be the last
 
 /**
  * Animate
