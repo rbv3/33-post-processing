@@ -167,7 +167,7 @@ dotScreenPass.enabled = false
 gui.add(dotScreenPass, 'enabled').name('Enable DotScreen')
 
 const glitchPass = new GlitchPass()
-glitchPass.enabled = true
+glitchPass.enabled = false
 gui.add(glitchPass, 'enabled').name('Enable Glitch')
 
 
