@@ -1,7 +1,11 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
+import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as dat from 'lil-gui'
 
@@ -140,7 +144,19 @@ effectComposer.setSize(sizes.width, sizes.height)
 
 const renderPass = new RenderPass(scene, camera)
 
+const dotScreenPass = new DotScreenPass()
+dotScreenPass.enabled = false
+
+const glitchPass = new GlitchPass()
+glitchPass.enabled = false
+
+const rgbShiftPass = new ShaderPass(RGBShiftShader)
+rgbShiftPass.enabled = true
+
 effectComposer.addPass(renderPass)
+effectComposer.addPass(dotScreenPass)
+effectComposer.addPass(glitchPass)
+effectComposer.addPass(rgbShiftPass)
 
 /**
  * Animate
