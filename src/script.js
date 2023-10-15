@@ -5,9 +5,10 @@ import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
 import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader'
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as dat from 'lil-gui'
 
@@ -163,12 +164,16 @@ const renderPass = new RenderPass(scene, camera)
 
 const dotScreenPass = new DotScreenPass()
 dotScreenPass.enabled = false
+gui.add(dotScreenPass, 'enabled').name('Enable DotScreen')
 
 const glitchPass = new GlitchPass()
 glitchPass.enabled = true
+gui.add(glitchPass, 'enabled').name('Enable Glitch')
+
 
 const rgbShiftPass = new ShaderPass(RGBShiftShader)
 rgbShiftPass.enabled = false
+gui.add(rgbShiftPass, 'enabled').name('Enable RGBShift')
 
 const gammaCorrectionShader = new ShaderPass(GammaCorrectionShader)
 gammaCorrectionShader.enabled = true
@@ -179,10 +184,23 @@ if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2) {
     smaaPass.enabled = true
 }
 
+const unrealBloomPass = new UnrealBloomPass()
+unrealBloomPass.strength = 0.3
+unrealBloomPass.radius = 1
+unrealBloomPass.threshold = 0.6
+unrealBloomPass.enabled = true
+gui.add(unrealBloomPass, 'enabled').name('Enable UnrealBloom')
+const unrealBloomFolder = gui.addFolder('Unreal Bloom properties')
+unrealBloomFolder.close()
+unrealBloomFolder.add(unrealBloomPass, 'strength').min(0).max(1).step(0.01).name('strength')
+unrealBloomFolder.add(unrealBloomPass, 'radius').min(0).max(1).step(0.01).name('radius')
+unrealBloomFolder.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.01).name('threshold')
+
 effectComposer.addPass(renderPass)
 effectComposer.addPass(dotScreenPass)
 effectComposer.addPass(glitchPass)
 effectComposer.addPass(rgbShiftPass)
+effectComposer.addPass(unrealBloomPass)
 effectComposer.addPass(gammaCorrectionShader) // should be the last traditional pass
 effectComposer.addPass(smaaPass) // all Anti-alias pass should be the last
 
