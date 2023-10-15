@@ -5,6 +5,7 @@ import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
 import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader'
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as dat from 'lil-gui'
@@ -132,6 +133,7 @@ renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFShadowMap
 renderer.toneMapping = THREE.ReinhardToneMapping
 renderer.toneMappingExposure = 1.5
+renderer.outputColorSpace = THREE.SRGBColorSpace
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -153,10 +155,14 @@ glitchPass.enabled = false
 const rgbShiftPass = new ShaderPass(RGBShiftShader)
 rgbShiftPass.enabled = true
 
+const gammaCorrectionShader = new ShaderPass(GammaCorrectionShader)
+gammaCorrectionShader.enabled = true
+
 effectComposer.addPass(renderPass)
 effectComposer.addPass(dotScreenPass)
 effectComposer.addPass(glitchPass)
 effectComposer.addPass(rgbShiftPass)
+effectComposer.addPass(gammaCorrectionShader)
 
 /**
  * Animate
